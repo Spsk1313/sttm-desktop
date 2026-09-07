@@ -51,7 +51,7 @@ const hasBindiCharacter = (charCode) => CONSTS.BINDI_CHARS[charCode] || false;
  * search('jggsspp', 0, 'all');
  * // => [{ Gurmukhi: 'jo gurisK guru syvdy sy puMn prwxI ]', ID: 31057 },...]
  */
-const query = (searchQuery, searchType, searchSource, resultRows = 20) =>
+const query = (searchQuery, searchType, searchSource, resultRows = 20, shabadId = null) =>
   new Promise((resolve, reject) => {
     if (!initialized) {
       init();
@@ -177,7 +177,13 @@ const query = (searchQuery, searchType, searchSource, resultRows = 20) =>
       default:
         break;
     }
+
     const orderArray = Array.from(order, (el) => [el, false]);
+
+    if (shabadId !== null) {
+      condition = `(${condition}) AND ANY Shabads.ShabadID == ${shabadId}`;
+    }
+
     Realm.open(realmConfig)
       .then((realm) => {
         const rows = realm.objects('Verse').filtered(condition).sorted(orderArray);
