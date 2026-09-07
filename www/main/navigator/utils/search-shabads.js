@@ -5,9 +5,15 @@ const remote = require('@electron/remote');
 
 const { i18n } = remote.require('./app');
 
-export const searchShabads = (searchQuery, searchType, searchSource, howManyRows) =>
+export const searchShabads = (
+  searchQuery,
+  searchType,
+  searchSource,
+  howManyRows,
+  shabadId = null,
+) =>
   banidb
-    .query(searchQuery, searchType, searchSource, howManyRows)
+    .query(searchQuery, searchType, searchSource, howManyRows, shabadId)
     .then((verses) => verses)
     .catch((err) => {
       const dbStatus = !!localStorage.getItem('isDbDownloaded');
