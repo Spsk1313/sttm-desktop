@@ -60,7 +60,6 @@ export const ShabadText = ({
   } = useStoreState((state) => state.navigator);
 
   const { command: voiceTrackingCommand } = useStoreState((state) => state.voiceTracking);
-
   const { baniLength, liveFeed, autoplayDelay, autoplayToggle, intelligentSpacebar, akhandpatt } =
     useStoreState((state) => state.userSettings);
 
@@ -77,6 +76,8 @@ export const ShabadText = ({
     setIsSundarGutkaBani,
     savedCrossPlatformId,
   } = useStoreActions((actions) => actions.navigator);
+
+  const { recordMatch, recordMiss } = useStoreActions((actions) => actions.voiceTracking);
 
   const updateTraversedVerse = (newTraversedVerse, verseIndex, crossPlatformId = null) => {
     if (isMiscSlide) {
@@ -126,7 +127,8 @@ export const ShabadText = ({
     const matches = await searchShabads(initials, 1, 'all', 20, shabadId);
 
     if (matches.length !== 1) {
-      return false;
+      recordMiss();
+      return;
     }
 
     const matchedVerseId = matches[0].ID;
@@ -134,13 +136,14 @@ export const ShabadText = ({
     const verseIndex = filteredItems.findIndex((verse) => verse.verseId === matchedVerseId);
 
     if (verseIndex < 0) {
-      return false;
+      recordMiss();
+      return;
     }
+
+    recordMatch();
 
     updateTraversedVerse(matchedVerseId, verseIndex);
     scrollToVerse(matchedVerseId, filteredItems, virtuosoRef);
-
-    return true;
   };
 
   const updateHomeVerse = (verseIndex) => {
@@ -184,15 +187,7 @@ export const ShabadText = ({
       return;
     }
 
-    const processCommand = async () => {
-      const handled = await handleVoiceTrackingCommand(voiceTrackingCommand.initials);
-
-      if (handled) {
-        lastProcessedCommandIdRef.current = voiceTrackingCommand.id;
-      }
-    };
-
-    processCommand();
+    lastProcessedCommandIdRef.current = voiceTrackingCommand.id;
 
     handleVoiceTrackingCommand(voiceTrackingCommand.initials);
   }, [voiceTrackingCommand, filteredItems, activePaneId, currentPane, shabadId]);

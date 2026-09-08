@@ -98,9 +98,27 @@ const GlobalState = createStore({
   ),
   voiceTracking: {
     command: null,
+    nextCommandId: 0,
+    consecutiveMisses: 0,
 
-    setCommand: action((state, command) => {
-      state.command = command;
+    setCommand: action((state, initials) => {
+      state.nextCommandId += 1;
+
+      state.command = {
+        initials,
+        id: state.nextCommandId,
+      };
+
+      return state;
+    }),
+
+    recordMatch: action((state) => {
+      state.consecutiveMisses = 0;
+      return state;
+    }),
+
+    recordMiss: action((state) => {
+      state.consecutiveMisses += 1;
       return state;
     }),
   },
