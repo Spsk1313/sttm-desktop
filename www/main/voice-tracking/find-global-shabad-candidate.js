@@ -1,4 +1,4 @@
-import { searchShabads } from '../navigator/utils';
+import { searchShabads } from '../navigator/utils/search-shabads';
 
 const findGlobalShabadCandidate = async (initials) => {
   const matches = await searchShabads(initials, 1, 'all', 20);
@@ -24,6 +24,7 @@ const findGlobalShabadCandidate = async (initials) => {
   return {
     type: 'global-candidate',
     shabadId: uniqueShabadIds[0],
+    verseId: matches.length === 1 ? matches[0].ID : null,
   };
 };
 

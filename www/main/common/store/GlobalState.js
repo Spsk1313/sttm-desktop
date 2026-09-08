@@ -103,6 +103,7 @@ const GlobalState = createStore({
     status: 'local-tracking',
     candidateShabadId: null,
     candidateHits: 0,
+    candidateVerseIds: [],
 
     setCommand: action((state, initials) => {
       state.nextCommandId += 1;
@@ -119,6 +120,7 @@ const GlobalState = createStore({
       state.consecutiveMisses = 0;
       state.candidateShabadId = null;
       state.candidateHits = 0;
+      state.candidateVerseIds = [];
       state.status = 'local-tracking';
       return state;
     }),
@@ -130,17 +132,25 @@ const GlobalState = createStore({
         state.status = 'uncertain';
         state.candidateShabadId = null;
         state.candidateHits = 0;
+        state.candidateVerseIds = [];
       }
 
       return state;
     }),
 
-    recordCandidate: action((state, shabadId) => {
-      if (state.candidateShabadId === shabadId) {
-        state.candidateHits += 1;
-      } else {
+    recordCandidate: action((state, candidate) => {
+      const { shabadId, verseId } = candidate;
+
+      if (state.candidateShabadId !== shabadId) {
         state.candidateShabadId = shabadId;
         state.candidateHits = 1;
+        state.candidateVerseIds = verseId === null ? [] : [verseId];
+      } else {
+        state.candidateHits += 1;
+
+        if (verseId !== null && !state.candidateVerseIds.includes(verseId)) {
+          state.candidateVerseIds.push(verseId);
+        }
       }
 
       state.status = 'candidate-tracking';

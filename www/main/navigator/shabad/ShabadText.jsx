@@ -158,7 +158,10 @@ export const ShabadText = ({
       return;
     }
 
-    recordCandidate(globalResult.shabadId);
+    recordCandidate({
+      shabadId: globalResult.shabadId,
+      verseId: globalResult.verseId,
+    });
   };
 
   const updateHomeVerse = (verseIndex) => {
