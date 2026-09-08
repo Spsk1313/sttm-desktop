@@ -4,7 +4,7 @@ import { Virtuoso } from 'react-virtuoso';
 import { ipcRenderer } from 'electron';
 import PropTypes from 'prop-types';
 
-import { loadShabad, loadBani, loadCeremony } from '../utils';
+import { loadShabad, loadBani, loadCeremony, searchShabads } from '../utils';
 import { ShabadVerse } from '../../common/sttm-ui';
 import {
   changeHomeVerse,
@@ -42,6 +42,7 @@ export const ShabadText = ({
 
   const virtuosoRef = useRef(null);
   const activeVerseRef = useRef(null);
+  const lastProcessedCommandIdRef = useRef(null);
 
   const {
     activeVerseId,
@@ -57,6 +58,8 @@ export const ShabadText = ({
     shortcuts,
     lineNumber,
   } = useStoreState((state) => state.navigator);
+
+  const { command: voiceTrackingCommand } = useStoreState((state) => state.voiceTracking);
 
   const { baniLength, liveFeed, autoplayDelay, autoplayToggle, intelligentSpacebar, akhandpatt } =
     useStoreState((state) => state.userSettings);
@@ -119,6 +122,27 @@ export const ShabadText = ({
     });
   };
 
+  const handleVoiceTrackingCommand = async (initials) => {
+    const matches = await searchShabads(initials, 1, 'all', 20, shabadId);
+
+    if (matches.length !== 1) {
+      return false;
+    }
+
+    const matchedVerseId = matches[0].ID;
+
+    const verseIndex = filteredItems.findIndex((verse) => verse.verseId === matchedVerseId);
+
+    if (verseIndex < 0) {
+      return false;
+    }
+
+    updateTraversedVerse(matchedVerseId, verseIndex);
+    scrollToVerse(matchedVerseId, filteredItems, virtuosoRef);
+
+    return true;
+  };
+
   const updateHomeVerse = (verseIndex) => {
     changeHomeVerse(verseIndex, { paneAttributes, setPaneAttributes });
   };
@@ -146,6 +170,32 @@ export const ShabadText = ({
       }
     }
   };
+
+  useEffect(() => {
+    if (!voiceTrackingCommand || filteredItems.length === 0) {
+      return;
+    }
+
+    if (activePaneId !== null && activePaneId !== currentPane) {
+      return;
+    }
+
+    if (lastProcessedCommandIdRef.current === voiceTrackingCommand.id) {
+      return;
+    }
+
+    const processCommand = async () => {
+      const handled = await handleVoiceTrackingCommand(voiceTrackingCommand.initials);
+
+      if (handled) {
+        lastProcessedCommandIdRef.current = voiceTrackingCommand.id;
+      }
+    };
+
+    processCommand();
+
+    handleVoiceTrackingCommand(voiceTrackingCommand.initials);
+  }, [voiceTrackingCommand, filteredItems, activePaneId, currentPane, shabadId]);
 
   useEffect(() => {
     if (baniType === 'shabad') {

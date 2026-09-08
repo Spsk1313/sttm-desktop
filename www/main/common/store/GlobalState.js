@@ -96,6 +96,14 @@ const GlobalState = createStore({
     savedOverlaySettings,
     userConfigPath,
   ),
+  voiceTracking: {
+    command: null,
+
+    setCommand: action((state, command) => {
+      state.command = command;
+      return state;
+    }),
+  },
 });
 
 global.platform.ipc.on('update-global-setting', (_event, setting) => {
