@@ -104,8 +104,13 @@ const GlobalState = createStore({
     candidateShabadId: null,
     candidateHits: 0,
     candidateVerseIds: [],
+    enabled: false,
 
     setCommand: action((state, initials) => {
+      if (!state.enabled) {
+        return state;
+      }
+
       state.nextCommandId += 1;
 
       state.command = {
@@ -154,6 +159,21 @@ const GlobalState = createStore({
       }
 
       state.status = 'candidate-tracking';
+
+      return state;
+    }),
+
+    setEnabled: action((state, enabled) => {
+      state.enabled = enabled;
+
+      if (!enabled) {
+        state.command = null;
+        state.consecutiveMisses = 0;
+        state.status = 'local-tracking';
+        state.candidateShabadId = null;
+        state.candidateHits = 0;
+        state.candidateVerseIds = [];
+      }
 
       return state;
     }),
