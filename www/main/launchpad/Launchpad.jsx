@@ -17,6 +17,7 @@ import {
 import { Settings } from '../settings/';
 
 import { DEFAULT_OVERLAY } from '../common/constants';
+import VoiceTrackingController from '../voice-tracking/VoiceTrackingController';
 
 const remote = require('@electron/remote');
 
@@ -190,6 +191,7 @@ const Launchpad = () => {
 
   return (
     <>
+      <VoiceTrackingController />
       <WorkspaceBar />
       <div className={`launchpad${isSingleDisplayMode ? ' single-display misc-pane' : ''}`}>
         <Toolbar />

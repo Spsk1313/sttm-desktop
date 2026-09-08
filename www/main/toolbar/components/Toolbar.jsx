@@ -2,6 +2,7 @@ import React from 'react';
 import { useStoreState } from 'easy-peasy';
 
 import ToolbarItem from './ToolbarItem';
+import VoiceTrackingToolbarItem from './VoiceTrackingToolbarItem';
 
 const Toolbar = () => {
   const { minimizedBySingleDisplay } = useStoreState((state) => state.navigator);
@@ -19,6 +20,8 @@ const Toolbar = () => {
         {toolbarTop.map((itemName, index) => (
           <ToolbarItem key={index} itemName={itemName} />
         ))}
+
+        <VoiceTrackingToolbarItem />
       </div>
 
       <div className="toolbar-bottom">

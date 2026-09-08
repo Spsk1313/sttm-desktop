@@ -486,6 +486,18 @@ button {
     }
   }
 
+  #tool-voice-tracking {
+  background-color: #29679b;
+  background-image: url('../../assets/img/icons/microphone.svg');
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: auto 70%;
+
+  &.voice-tracking-active {
+    background-image: url('../../assets/img/icons/microphone-off.svg');
+  }
+}
+
   #tool-announcement {
     background-image: url('../../assets/img/icons/megaphone.png');
     background-position: center center;

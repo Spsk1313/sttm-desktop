@@ -65,6 +65,7 @@ export const ShabadText = ({
 
   const {
     command: voiceTrackingCommand,
+    enabled: voiceTrackingEnabled,
     status: voiceTrackingStatus,
     candidateShabadId,
     candidateHits,
@@ -219,7 +220,7 @@ export const ShabadText = ({
   }, [candidateShabadId, candidateHits, candidateVerseIds, shabadId]);
 
   useEffect(() => {
-    if (!voiceTrackingCommand || filteredItems.length === 0) {
+    if (!voiceTrackingEnabled || !voiceTrackingCommand || filteredItems.length === 0) {
       return;
     }
 
@@ -235,6 +236,7 @@ export const ShabadText = ({
 
     handleVoiceTrackingCommand(voiceTrackingCommand.initials);
   }, [
+    voiceTrackingEnabled,
     voiceTrackingCommand,
     filteredItems,
     activePaneId,
