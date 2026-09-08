@@ -100,6 +100,7 @@ const GlobalState = createStore({
     command: null,
     nextCommandId: 0,
     consecutiveMisses: 0,
+    status: 'local-tracking',
 
     setCommand: action((state, initials) => {
       state.nextCommandId += 1;
@@ -114,11 +115,17 @@ const GlobalState = createStore({
 
     recordMatch: action((state) => {
       state.consecutiveMisses = 0;
+      state.status = 'local-tracking';
       return state;
     }),
 
     recordMiss: action((state) => {
       state.consecutiveMisses += 1;
+
+      if (state.consecutiveMisses >= 3) {
+        state.status = 'uncertain';
+      }
+
       return state;
     }),
   },
