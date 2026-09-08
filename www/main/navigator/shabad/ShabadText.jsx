@@ -7,7 +7,9 @@ import PropTypes from 'prop-types';
 import { loadShabad, loadBani, loadCeremony } from '../utils';
 import findLocalVoiceMatch from '../../voice-tracking/find-local-voice-match';
 import findGlobalShabadCandidate from '../../voice-tracking/find-global-shabad-candidate';
+import shouldPromoteCandidate from '../../voice-tracking/should-promote-candidate';
 import { ShabadVerse } from '../../common/sttm-ui';
+import { useNewShabad } from '../search/hooks/use-new-shabad';
 import {
   changeHomeVerse,
   changeVerse,
@@ -61,9 +63,13 @@ export const ShabadText = ({
     lineNumber,
   } = useStoreState((state) => state.navigator);
 
-  const { command: voiceTrackingCommand, status: voiceTrackingStatus } = useStoreState(
-    (state) => state.voiceTracking,
-  );
+  const {
+    command: voiceTrackingCommand,
+    status: voiceTrackingStatus,
+    candidateShabadId,
+    candidateHits,
+    candidateVerseIds,
+  } = useStoreState((state) => state.voiceTracking);
   const { baniLength, liveFeed, autoplayDelay, autoplayToggle, intelligentSpacebar, akhandpatt } =
     useStoreState((state) => state.userSettings);
 
@@ -84,6 +90,8 @@ export const ShabadText = ({
   const { recordMatch, recordMiss, recordCandidate } = useStoreActions(
     (actions) => actions.voiceTracking,
   );
+
+  const changeActiveShabad = useNewShabad();
 
   const updateTraversedVerse = (newTraversedVerse, verseIndex, crossPlatformId = null) => {
     if (isMiscSlide) {
@@ -191,6 +199,24 @@ export const ShabadText = ({
       }
     }
   };
+
+  useEffect(() => {
+    const shouldPromote = shouldPromoteCandidate({
+      candidateShabadId,
+      candidateHits,
+      candidateVerseIds,
+    });
+
+    if (!shouldPromote) {
+      return;
+    }
+
+    const candidateVerseId = candidateVerseIds[candidateVerseIds.length - 1];
+
+    recordMatch();
+
+    changeActiveShabad(candidateShabadId, candidateVerseId, null);
+  }, [candidateShabadId, candidateHits, candidateVerseIds, shabadId]);
 
   useEffect(() => {
     if (!voiceTrackingCommand || filteredItems.length === 0) {
