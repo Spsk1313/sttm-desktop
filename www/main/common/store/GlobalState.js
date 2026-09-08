@@ -101,6 +101,8 @@ const GlobalState = createStore({
     nextCommandId: 0,
     consecutiveMisses: 0,
     status: 'local-tracking',
+    candidateShabadId: null,
+    candidateHits: 0,
 
     setCommand: action((state, initials) => {
       state.nextCommandId += 1;
@@ -115,6 +117,8 @@ const GlobalState = createStore({
 
     recordMatch: action((state) => {
       state.consecutiveMisses = 0;
+      state.candidateShabadId = null;
+      state.candidateHits = 0;
       state.status = 'local-tracking';
       return state;
     }),
@@ -124,7 +128,22 @@ const GlobalState = createStore({
 
       if (state.consecutiveMisses >= 3) {
         state.status = 'uncertain';
+        state.candidateShabadId = null;
+        state.candidateHits = 0;
       }
+
+      return state;
+    }),
+
+    recordCandidate: action((state, shabadId) => {
+      if (state.candidateShabadId === shabadId) {
+        state.candidateHits += 1;
+      } else {
+        state.candidateShabadId = shabadId;
+        state.candidateHits = 1;
+      }
+
+      state.status = 'candidate-switch';
 
       return state;
     }),
