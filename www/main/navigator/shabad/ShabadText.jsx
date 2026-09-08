@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 
 import { loadShabad, loadBani, loadCeremony } from '../utils';
 import findLocalVoiceMatch from '../../voice-tracking/find-local-voice-match';
+import findGlobalShabadCandidate from '../../voice-tracking/find-global-shabad-candidate';
 import { ShabadVerse } from '../../common/sttm-ui';
 import {
   changeHomeVerse,
@@ -60,7 +61,9 @@ export const ShabadText = ({
     lineNumber,
   } = useStoreState((state) => state.navigator);
 
-  const { command: voiceTrackingCommand } = useStoreState((state) => state.voiceTracking);
+  const { command: voiceTrackingCommand, status: voiceTrackingStatus } = useStoreState(
+    (state) => state.voiceTracking,
+  );
   const { baniLength, liveFeed, autoplayDelay, autoplayToggle, intelligentSpacebar, akhandpatt } =
     useStoreState((state) => state.userSettings);
 
@@ -78,7 +81,9 @@ export const ShabadText = ({
     savedCrossPlatformId,
   } = useStoreActions((actions) => actions.navigator);
 
-  const { recordMatch, recordMiss } = useStoreActions((actions) => actions.voiceTracking);
+  const { recordMatch, recordMiss, recordCandidate } = useStoreActions(
+    (actions) => actions.voiceTracking,
+  );
 
   const updateTraversedVerse = (newTraversedVerse, verseIndex, crossPlatformId = null) => {
     if (isMiscSlide) {
@@ -125,17 +130,35 @@ export const ShabadText = ({
   };
 
   const handleVoiceTrackingCommand = async (initials) => {
-    const result = await findLocalVoiceMatch(initials, shabadId, filteredItems);
+    const localResult = await findLocalVoiceMatch(initials, shabadId, filteredItems);
 
-    if (result.type === 'local-miss') {
-      recordMiss();
+    if (localResult.type === 'local-match') {
+      recordMatch();
+
+      updateTraversedVerse(localResult.verseId, localResult.verseIndex);
+
+      scrollToVerse(localResult.verseId, filteredItems, virtuosoRef);
+
       return;
     }
 
-    recordMatch();
+    recordMiss();
 
-    updateTraversedVerse(result.verseId, result.verseIndex);
-    scrollToVerse(result.verseId, filteredItems, virtuosoRef);
+    if (voiceTrackingStatus !== 'uncertain' && voiceTrackingStatus !== 'candidate-tracking') {
+      return;
+    }
+
+    const globalResult = await findGlobalShabadCandidate(initials);
+
+    if (globalResult.type !== 'global-candidate') {
+      return;
+    }
+
+    if (globalResult.shabadId === shabadId) {
+      return;
+    }
+
+    recordCandidate(globalResult.shabadId);
   };
 
   const updateHomeVerse = (verseIndex) => {
@@ -182,7 +205,14 @@ export const ShabadText = ({
     lastProcessedCommandIdRef.current = voiceTrackingCommand.id;
 
     handleVoiceTrackingCommand(voiceTrackingCommand.initials);
-  }, [voiceTrackingCommand, filteredItems, activePaneId, currentPane, shabadId]);
+  }, [
+    voiceTrackingCommand,
+    filteredItems,
+    activePaneId,
+    currentPane,
+    shabadId,
+    voiceTrackingStatus,
+  ]);
 
   useEffect(() => {
     if (baniType === 'shabad') {

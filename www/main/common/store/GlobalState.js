@@ -126,7 +126,7 @@ const GlobalState = createStore({
     recordMiss: action((state) => {
       state.consecutiveMisses += 1;
 
-      if (state.consecutiveMisses >= 3) {
+      if (state.consecutiveMisses >= 3 && state.status === 'local-tracking') {
         state.status = 'uncertain';
         state.candidateShabadId = null;
         state.candidateHits = 0;
@@ -143,7 +143,7 @@ const GlobalState = createStore({
         state.candidateHits = 1;
       }
 
-      state.status = 'candidate-switch';
+      state.status = 'candidate-tracking';
 
       return state;
     }),
