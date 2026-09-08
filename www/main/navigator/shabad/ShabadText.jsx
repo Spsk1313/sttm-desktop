@@ -4,7 +4,8 @@ import { Virtuoso } from 'react-virtuoso';
 import { ipcRenderer } from 'electron';
 import PropTypes from 'prop-types';
 
-import { loadShabad, loadBani, loadCeremony, searchShabads } from '../utils';
+import { loadShabad, loadBani, loadCeremony } from '../utils';
+import findLocalVoiceMatch from '../../voice-tracking/find-local-voice-match';
 import { ShabadVerse } from '../../common/sttm-ui';
 import {
   changeHomeVerse,
@@ -124,26 +125,17 @@ export const ShabadText = ({
   };
 
   const handleVoiceTrackingCommand = async (initials) => {
-    const matches = await searchShabads(initials, 1, 'all', 20, shabadId);
+    const result = await findLocalVoiceMatch(initials, shabadId, filteredItems);
 
-    if (matches.length !== 1) {
-      recordMiss();
-      return;
-    }
-
-    const matchedVerseId = matches[0].ID;
-
-    const verseIndex = filteredItems.findIndex((verse) => verse.verseId === matchedVerseId);
-
-    if (verseIndex < 0) {
+    if (result.type === 'local-miss') {
       recordMiss();
       return;
     }
 
     recordMatch();
 
-    updateTraversedVerse(matchedVerseId, verseIndex);
-    scrollToVerse(matchedVerseId, filteredItems, virtuosoRef);
+    updateTraversedVerse(result.verseId, result.verseIndex);
+    scrollToVerse(result.verseId, filteredItems, virtuosoRef);
   };
 
   const updateHomeVerse = (verseIndex) => {
